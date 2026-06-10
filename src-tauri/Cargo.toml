@@ -5,6 +5,13 @@ description = "Video summarizer desktop app"
 authors = ["VidNote"]
 edition = "2021"
 
+[package.metadata]
+
+[package.metadata.tauri-winres]
+product-name = "VidNote"
+file-version = "1.0.0"
+product-version = "1.0.0"
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
@@ -21,6 +28,7 @@ regex = "1"
 uuid = { version = "1", features = ["v4"] }
 chrono = { version = "0.4", features = ["serde"] }
 rusqlite = { version = "0.32", features = ["bundled"] }
+encoding_rs = "0.8"
 
 [profile.release]
 opt-level = 3

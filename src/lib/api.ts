@@ -6,6 +6,7 @@ import type {
   SummaryResult,
   VideoRecord,
   AppSettings,
+  YoutubeTranscriptLanguages,
 } from "../types";
 
 // Video URL parsing
@@ -27,17 +28,28 @@ export function detectPlatform(url: string): Platform {
 }
 
 // Fetch video info
-export async function fetchVideoInfo(url: string): Promise<VideoInfo> {
-  return invoke("fetch_video_info", { url });
+export async function fetchVideoInfo(
+  url: string,
+  settings: AppSettings
+): Promise<VideoInfo> {
+  return invoke("fetch_video_info", { url, settings });
 }
 
 // Fetch subtitles
 export async function fetchSubtitles(
   url: string,
   platform: Platform,
-  settings: AppSettings
+  settings: AppSettings,
+  subtitleLang?: string
 ): Promise<SubtitleData> {
-  return invoke("fetch_subtitles", { url, platform, settings });
+  return invoke("fetch_subtitles", { url, platform, settings, subtitleLang });
+}
+
+// Fetch YouTube transcript languages (original + translations)
+export async function fetchYoutubeTranscriptLanguages(
+  videoId: string
+): Promise<YoutubeTranscriptLanguages> {
+  return invoke("fetch_youtube_transcript_languages", { videoId });
 }
 
 // Generate summary

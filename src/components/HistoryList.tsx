@@ -1,4 +1,4 @@
-import { Trash2, Clock, Play, Tv } from "lucide-react";
+import { Trash2, Clock, Play, Tv, RefreshCw } from "lucide-react";
 import type { VideoRecord } from "../types";
 
 interface Props {
@@ -6,6 +6,8 @@ interface Props {
   selectedId: string | null;
   onSelect: (record: VideoRecord) => void;
   onDelete: (id: string) => void;
+  onReprocess?: (record: VideoRecord) => void;
+  reprocessingId?: string | null;
 }
 
 export default function HistoryList({
@@ -13,6 +15,8 @@ export default function HistoryList({
   selectedId,
   onSelect,
   onDelete,
+  onReprocess,
+  reprocessingId,
 }: Props) {
   if (records.length === 0) {
     return (
@@ -61,17 +65,32 @@ export default function HistoryList({
                 </span>
               </div>
             </div>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                if (confirm("确定删除这条记录吗？")) {
-                  onDelete(record.id);
-                }
-              }}
-              className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-opacity shrink-0"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onReprocess?.(record);
+                }}
+                disabled={reprocessingId === record.id}
+                className={`opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-primary-600 transition-opacity ${
+                  reprocessingId === record.id ? "opacity-100 animate-pulse" : ""
+                }`}
+                title="再次处理"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${reprocessingId === record.id ? "animate-spin" : ""}`} />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (confirm("确定删除这条记录吗？")) {
+                    onDelete(record.id);
+                  }
+                }}
+                className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-opacity"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         </div>
       ))}

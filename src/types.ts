@@ -1,5 +1,16 @@
 export type Platform = "youtube" | "bilibili" | "douyin" | "xiaohongshu" | "unknown";
 
+export interface SubtitleTrack {
+  code: string;
+  name: string;
+  isAuto: boolean;
+}
+
+export interface AvailableSubtitles {
+  manual: SubtitleTrack[];
+  auto: SubtitleTrack[];
+}
+
 export interface VideoInfo {
   url: string;
   platform: Platform;
@@ -9,6 +20,7 @@ export interface VideoInfo {
   duration?: number;
   thumbnail?: string;
   description?: string;
+  availableSubtitles?: AvailableSubtitles;
 }
 
 export interface SubtitleData {
@@ -43,6 +55,17 @@ export interface VideoRecord {
   updatedAt: string;
 }
 
+export interface TranscriptLanguageOption {
+  code: string;
+  name: string;
+  isGenerated: boolean;
+}
+
+export interface YoutubeTranscriptLanguages {
+  original: TranscriptLanguageOption[];
+  translations: TranscriptLanguageOption[];
+}
+
 export interface AppSettings {
   apiKey: string;
   apiBaseUrl: string;
@@ -50,4 +73,8 @@ export interface AppSettings {
   language: string;
   autoSummarize: boolean;
   cookiesPath?: string;
+  youtubeLanguage?: string;
+  bilibiliLanguage?: string;
+  douyinLanguage?: string;
+  xiaohongshuLanguage?: string;
 }

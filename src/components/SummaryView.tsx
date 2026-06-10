@@ -14,6 +14,8 @@ import {
   Download,
 } from "lucide-react";
 import type { VideoInfo, SubtitleData, SummaryResult } from "../types";
+import { exportToPdf, exportToEpub } from "../lib/export";
+import type { ExportData } from "../lib/export";
 
 interface Props {
   info: VideoInfo;
@@ -37,8 +39,31 @@ export default function SummaryView({
   const [copied, setCopied] = useState(false);
   const [showSrt, setShowSrt] = useState(false);
   const [subtitleCopied, setSubtitleCopied] = useState(false);
+  const [includeTimestamp, setIncludeTimestamp] = useState(true);
 
   const hasSummary = summary.aiTitle || summary.summary || summary.keyPoints.length > 0;
+
+  function buildExportData(): ExportData {
+    return {
+      title: info.title,
+      author: info.author,
+      platform: info.platform,
+      url: info.url,
+      subtitleText: subtitle.textContent,
+      subtitleSrt: subtitle.srtContent,
+      aiTitle: summary.aiTitle || undefined,
+      summary: summary.summary || undefined,
+      keyPoints: summary.keyPoints.length > 0 ? summary.keyPoints : undefined,
+    };
+  }
+
+  function handleExportPdf() {
+    exportToPdf(buildExportData(), { includeTimestamp });
+  }
+
+  function handleExportEpub() {
+    exportToEpub(buildExportData(), { includeTimestamp });
+  }
 
   function handleCopy() {
     const text = formatForCopy(info, summary);
@@ -111,6 +136,35 @@ export default function SummaryView({
               打开原视频
             </a>
           </div>
+        </div>
+      </div>
+
+      {/* Export Toolbar */}
+      <div className="card p-3 flex items-center justify-between">
+        <label className="flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={includeTimestamp}
+            onChange={(e) => setIncludeTimestamp(e.target.checked)}
+            className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+          />
+          导出包含时间戳
+        </label>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleExportPdf}
+            className="btn-secondary text-xs flex items-center gap-1 py-1.5"
+          >
+            <FileText className="w-3.5 h-3.5" />
+            导出 PDF
+          </button>
+          <button
+            onClick={handleExportEpub}
+            className="btn-secondary text-xs flex items-center gap-1 py-1.5"
+          >
+            <Bookmark className="w-3.5 h-3.5" />
+            导出 EPUB
+          </button>
         </div>
       </div>
 

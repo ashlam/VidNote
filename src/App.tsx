@@ -18,6 +18,8 @@ import {
   getRecords,
   deleteRecord,
   updateNotes,
+  fetchSubtitles,
+  generateSummary,
 } from "./lib/api";
 import type {
   VideoInfo,
@@ -43,6 +45,7 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [view, setView] = useState<ViewMode>("input");
   const [currentRecord, setCurrentRecord] = useState<VideoRecord | null>(null);
+  const [reprocessingId, setReprocessingId] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     try {
@@ -126,6 +129,58 @@ export default function App() {
     setView("input");
   }
 
+  async function handleReprocess(record: VideoRecord) {
+    if (reprocessingId) return;
+    setReprocessingId(record.id);
+
+    try {
+      const info: VideoInfo = {
+        url: record.url,
+        platform: record.platform as any,
+        videoId: record.videoId,
+        title: record.title,
+        author: record.author,
+        duration: record.duration,
+        thumbnail: record.thumbnail,
+        description: undefined,
+      };
+
+      const subtitle = await fetchSubtitles(record.url, info.platform, settings, undefined);
+
+      let summary: SummaryResult = {
+        aiTitle: record.aiTitle || record.title,
+        summary: record.summary,
+        keyPoints: JSON.parse(record.keyPoints || "[]"),
+      };
+
+      if (settings.apiKey && settings.autoSummarize) {
+        const newSummary = await generateSummary(subtitle.textContent, info, settings);
+        summary = newSummary;
+      }
+
+      const now = new Date().toISOString();
+      const updated: VideoRecord = {
+        ...record,
+        subtitleText: subtitle.textContent,
+        subtitleSrt: subtitle.srtContent,
+        aiTitle: summary.aiTitle || record.title,
+        summary: summary.summary,
+        keyPoints: JSON.stringify(summary.keyPoints),
+        updatedAt: now,
+      };
+
+      await saveRecord(updated);
+      setRecords((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
+      if (currentRecord?.id === updated.id) {
+        setCurrentRecord(updated);
+      }
+    } catch (err: any) {
+      alert("重新处理失败: " + (err?.toString?.() || "未知错误"));
+    } finally {
+      setReprocessingId(null);
+    }
+  }
+
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center">
@@ -171,6 +226,8 @@ export default function App() {
             selectedId={currentRecord?.id || null}
             onSelect={handleSelectRecord}
             onDelete={handleDelete}
+            onReprocess={handleReprocess}
+            reprocessingId={reprocessingId}
           />
         </div>
       </aside>
@@ -235,7 +292,11 @@ export default function App() {
                 </div>
               </div>
 
-              <VideoInput settings={settings} onComplete={handleComplete} />
+              <VideoInput
+                settings={settings}
+                onComplete={handleComplete}
+                onOpenSettings={() => setSettingsOpen(true)}
+              />
 
               {!isAdvancedMode && (
                 <div className="card p-4 bg-gray-50 border-gray-200 text-center">

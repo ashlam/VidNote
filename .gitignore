@@ -6,3 +6,15 @@
 *.log
 .DS_Store
 Thumbs.db
+
+# Local data & sensitive files
+*.db
+*.db-journal
+/src-tauri/data.db
+
+# Claude / AI agent files
+/.agents/
+/skills-lock.json
+
+# Test scripts & output
+/scripts/

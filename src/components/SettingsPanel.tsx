@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Settings, Key, Globe, Languages, Sparkles, FileText } from "lucide-react";
+import { X, Settings, Key, Globe, Languages, Sparkles, FileText, Tv, Play, Smartphone } from "lucide-react";
 import type { AppSettings } from "../types";
 import { loadSettings, saveSettings } from "../lib/api";
 
@@ -7,6 +7,13 @@ interface Props {
   open: boolean;
   onClose: () => void;
 }
+
+const PLATFORM_LANG_DEFAULTS: Record<string, string> = {
+  youtube: "zh-Hans",
+  bilibili: "ai-zh",
+  douyin: "zh",
+  xiaohongshu: "zh",
+};
 
 export default function SettingsPanel({ open, onClose }: Props) {
   const [settings, setSettings] = useState<AppSettings>({
@@ -130,7 +137,7 @@ export default function SettingsPanel({ open, onClose }: Props) {
           <div>
             <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
               <Languages className="w-3.5 h-3.5" />
-              默认字幕语言偏好
+              全局默认字幕语言
             </label>
             <select
               value={settings.language}
@@ -144,6 +151,57 @@ export default function SettingsPanel({ open, onClose }: Props) {
               <option value="ja">日本語優先</option>
               <option value="auto">自动</option>
             </select>
+            <p className="mt-1 text-xs text-gray-400">
+              未单独配置平台时，使用此默认语言
+            </p>
+          </div>
+
+          {/* Platform-specific subtitle languages */}
+          <div className="space-y-3">
+            <p className="text-sm font-medium text-gray-700">各平台字幕语言偏好</p>
+
+            {[
+              { key: "youtubeLanguage" as const, label: "YouTube", icon: Play, defaultVal: "zh-Hans", opts: [
+                { v: "zh-Hans", l: "简体中文（zh-Hans）" },
+                { v: "zh-CN", l: "中文（zh-CN）" },
+                { v: "zh-TW", l: "繁体中文（zh-TW）" },
+                { v: "en", l: "English" },
+                { v: "ja", l: "日本語" },
+                { v: "ko", l: "한국어" },
+              ]},
+              { key: "bilibiliLanguage" as const, label: "Bilibili", icon: Tv, defaultVal: "ai-zh", opts: [
+                { v: "ai-zh", l: "AI 中文（ai-zh）" },
+                { v: "zh", l: "中文（zh）" },
+                { v: "en", l: "English" },
+                { v: "ja", l: "日本語" },
+              ]},
+              { key: "douyinLanguage" as const, label: "抖音", icon: Smartphone, defaultVal: "zh", opts: [
+                { v: "zh", l: "中文" },
+                { v: "en", l: "English" },
+              ]},
+              { key: "xiaohongshuLanguage" as const, label: "小红书", icon: Smartphone, defaultVal: "zh", opts: [
+                { v: "zh", l: "中文" },
+                { v: "en", l: "English" },
+              ]},
+            ].map((plat) => (
+              <div key={plat.key}>
+                <label className="flex items-center gap-1.5 text-sm text-gray-600 mb-1">
+                  <plat.icon className="w-3.5 h-3.5" />
+                  {plat.label}
+                </label>
+                <select
+                  value={settings[plat.key] || plat.defaultVal}
+                  onChange={(e) =>
+                    setSettings({ ...settings, [plat.key]: e.target.value })
+                  }
+                  className="input text-sm"
+                >
+                  {plat.opts.map((o) => (
+                    <option key={o.v} value={o.v}>{o.l}</option>
+                  ))}
+                </select>
+              </div>
+            ))}
           </div>
 
           {/* Cookies Path */}
